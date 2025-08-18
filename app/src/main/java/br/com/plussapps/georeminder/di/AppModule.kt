@@ -1,9 +1,12 @@
 package br.com.plussapps.georeminder.di
 
+
 import androidx.room.Room
 import br.com.plussapps.georeminder.data.ReminderDatabase
 import br.com.plussapps.georeminder.data.ReminderRepositoryImpl
 import br.com.plussapps.georeminder.domain.repository.ReminderRepository
+import br.com.plussapps.georeminder.domain.usecase.CreateReminderUseCase
+import br.com.plussapps.georeminder.ui.viewmodels.ReminderFormViewModel
 import org.koin.android.ext.koin.androidApplication
 import org.koin.dsl.module
 
@@ -26,9 +29,9 @@ val appModule = module {
     // Repository singleton
     single<ReminderRepository> { ReminderRepositoryImpl(get()) }
 
-    // Exemplo de repository se existir:
-    // single<ReminderRepository> { ReminderRepositoryImpl(get()) }
+    // UseCase singleton
+    single { CreateReminderUseCase(get()) }
 
-    // Exemplo de ViewModel quando você criar:
-    // viewModel { ReminderListViewModel(get()) }
+    // ViewModel
+    single { ReminderFormViewModel(get(), get()) }
 }

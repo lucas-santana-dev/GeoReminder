@@ -3,8 +3,16 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
+    id("com.google.android.libraries.mapsplatform.secrets-gradle-plugin")
 }
+secrets {
 
+    propertiesFileName = "secrets.properties"
+
+
+    ignoreList.add("keyToIgnore") // Ignore the key "keyToIgnore"
+    ignoreList.add("sdk.*")       // Ignore all keys matching the regexp "sdk.*"
+}
 android {
     namespace = "br.com.plussapps.georeminder"
     compileSdk = 36
@@ -15,7 +23,6 @@ android {
         targetSdk = 36
         versionCode = 1
         versionName = "1.0"
-
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -91,4 +98,10 @@ dependencies {
 
     // Google Maps SDK
     implementation(libs.play.services.maps)
+    implementation(libs.maps.compose)
+    implementation(libs.places)
+
+    implementation(libs.koin.androidx.compose)
+
+
 }

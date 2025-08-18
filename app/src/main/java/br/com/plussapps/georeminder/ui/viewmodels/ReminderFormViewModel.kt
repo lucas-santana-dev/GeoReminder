@@ -1,3 +1,4 @@
+package br.com.plussapps.georeminder.ui.viewmodels
 import android.app.Application
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,12 +10,14 @@ import br.com.plussapps.georeminder.domain.usecase.CreateReminderUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
+import timber.log.Timber
 
 data class ReminderFormUiState(
     val title: String = "",
     val description: String = "",
-    val location: LatLng = LatLng(-23.5505, -46.6333), // Default: São Paulo
-    val radius: Float = 100f
+    val location: LatLng? = null,
+    val radius: Float = 100f,
+    val locationPermissionDenied: Boolean = false
 )
 
 class ReminderFormViewModel(
@@ -32,15 +35,29 @@ class ReminderFormViewModel(
     private fun fetchCurrentLocation() {
         val fusedLocationClient = LocationServices.getFusedLocationProviderClient(getApplication())
         try {
-            fusedLocationClient.lastLocation.addOnSuccessListener { location ->
-                if (location != null) {
+            fusedLocationClient.lastLocation
+                .addOnSuccessListener { location ->
+                    if (location != null) {
+                        Timber.d("Localização obtida: ${location.latitude}, ${location.longitude}")
+                        _uiState.value = _uiState.value.copy(
+                            location = LatLng(location.latitude, location.longitude),
+                            locationPermissionDenied = false
+                        )
+                    } else {
+                        Timber.w("Localização retornou null")
+                    }
+                }
+                .addOnFailureListener { error ->
+                    Timber.e(error, "Erro ao buscar localização")
                     _uiState.value = _uiState.value.copy(
-                        location = LatLng(location.latitude, location.longitude)
+                        locationPermissionDenied = true
                     )
                 }
-            }
         } catch (e: SecurityException) {
-            // Permissão não concedida, mantém o default
+            Timber.e(e, "Permissão de localização negada")
+            _uiState.value = _uiState.value.copy(
+                locationPermissionDenied = true
+            )
         }
     }
 
@@ -63,8 +80,8 @@ class ReminderFormViewModel(
     fun onSave(onSuccess: () -> Unit) {
         val state = _uiState.value
         val locationDomain = Location(
-            latitude = state.location.latitude,
-            longitude = state.location.longitude,
+            latitude = state.location?.latitude ?: 0.0,
+            longitude = state.location?.longitude ?: 0.0,
             radius = state.radius
         )
         val reminder = Reminder(
