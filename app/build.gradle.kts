@@ -3,7 +3,6 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     id("com.google.devtools.ksp")
-
 }
 
 android {
@@ -21,14 +20,21 @@ android {
     }
 
     buildTypes {
+        debug {
+            applicationIdSuffix = ".debug"
+            versionNameSuffix = "-debug"
+            buildConfigField("boolean", "KOIN_LOGGER", "true")
+        }
         release {
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            buildConfigField("boolean", "KOIN_LOGGER", "false")
         }
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
@@ -38,11 +44,11 @@ android {
     }
     buildFeatures {
         compose = true
+        buildConfig = true // Habilita geração do BuildConfig
     }
 }
 
 dependencies {
-
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.activity.compose)
@@ -59,32 +65,30 @@ dependencies {
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
 
-    //Room
+    // Room
     implementation(libs.androidx.room.runtime)
     ksp(libs.androidx.room.compiler.v250)
     implementation(libs.androidx.room.ktx)
 
-    //Geolocalização e Geofencing
+    // Geolocalização e Geofencing
     implementation(libs.play.services.location)
 
-    //Notiificações
+    // Notificações
     implementation(libs.androidx.core.ktx.v1120)
 
-    //Injeção de dependências Koin
+    // Injeção de dependências Koin
     implementation(libs.koin.android)
 
-    //Corrotinas e Fluxo
+    // Corrotinas e Fluxo
     implementation(libs.kotlinx.coroutines.android)
 
-    //Arquitetura Android
+    // Arquitetura Android
     implementation(libs.androidx.lifecycle.viewmodel.ktx)
     implementation(libs.androidx.lifecycle.livedata.ktx)
 
-    //Timber (logging avançado)
+    // Timber (logging)
     implementation(libs.timber)
 
-    //Google Maps SDK (se quiser mostrar mapas)
+    // Google Maps SDK
     implementation(libs.play.services.maps)
-
-
 }

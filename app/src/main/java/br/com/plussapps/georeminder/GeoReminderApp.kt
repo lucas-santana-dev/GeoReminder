@@ -12,7 +12,6 @@ class GeoReminderApp : Application() {
         super.onCreate()
 
         startKoin {
-            // Em produção, use Level.NONE; durante dev, ERROR/INFO ajuda
             androidLogger(Level.ERROR)
             androidContext(this@GeoReminderApp)
             modules(appModule)
