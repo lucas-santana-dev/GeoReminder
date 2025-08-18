@@ -12,7 +12,7 @@ class GeoReminderApp : Application() {
         super.onCreate()
 
         startKoin {
-            androidLogger(Level.ERROR)
+            if (BuildConfig.DEBUG) androidLogger(Level.ERROR) else androidLogger(Level.NONE)
             androidContext(this@GeoReminderApp)
             modules(appModule)
         }
