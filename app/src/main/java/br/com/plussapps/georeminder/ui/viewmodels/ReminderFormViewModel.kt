@@ -1,5 +1,9 @@
 package br.com.plussapps.georeminder.ui.viewmodels
+
+import android.Manifest
 import android.app.Application
+import android.content.pm.PackageManager
+import androidx.core.app.ActivityCompat
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.location.LocationServices
@@ -7,6 +11,7 @@ import com.google.android.gms.maps.model.LatLng
 import br.com.plussapps.georeminder.domain.model.Location
 import br.com.plussapps.georeminder.domain.model.Reminder
 import br.com.plussapps.georeminder.domain.usecase.CreateReminderUseCase
+import br.com.plussapps.georeminder.geofencing.GeofenceManager // ADICIONADO
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
@@ -20,9 +25,11 @@ data class ReminderFormUiState(
     val locationPermissionDenied: Boolean = false
 )
 
+// Adiciona o GeofenceManager ao construtor (injete via Koin)
 class ReminderFormViewModel(
     application: Application,
-    private val createReminderUseCase: CreateReminderUseCase
+    private val createReminderUseCase: CreateReminderUseCase,
+    private val geofenceManager: GeofenceManager // NOVO
 ) : AndroidViewModel(application) {
 
     private val _uiState = MutableStateFlow(ReminderFormUiState())
@@ -77,7 +84,7 @@ class ReminderFormViewModel(
         _uiState.value = _uiState.value.copy(radius = value)
     }
 
-    fun onSave(onSuccess: () -> Unit) {
+    fun onSave(onSuccess: () -> Unit, onMissingPermission: () -> Unit) {
         val state = _uiState.value
         val locationDomain = Location(
             latitude = state.location?.latitude ?: 0.0,
@@ -92,6 +99,24 @@ class ReminderFormViewModel(
         viewModelScope.launch {
             val result = createReminderUseCase(reminder)
             if (result.isSuccess) {
+                val reminderId = result.getOrNull()
+                if (reminderId != null && state.location != null) {
+                    val context = getApplication<Application>()
+                    if (ActivityCompat.checkSelfPermission(
+                            context,
+                            Manifest.permission.ACCESS_FINE_LOCATION
+                        ) != PackageManager.PERMISSION_GRANTED
+                    ) {
+                        onMissingPermission()
+                        return@launch
+                    }
+                    geofenceManager.registerGeofence(
+                        reminderId = reminderId.toString(),
+                        latLng = state.location,
+                        radius = state.radius
+                    )
+                    Timber.d("Geofence registrado para lembrete $reminderId")
+                }
                 onSuccess()
             }
             // Pode adicionar tratamento de erro aqui

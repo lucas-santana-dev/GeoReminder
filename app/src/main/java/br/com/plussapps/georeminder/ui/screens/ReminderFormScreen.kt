@@ -86,7 +86,14 @@ fun ReminderFormScreen(
 
         Button(
             onClick = {
-                viewModel.onSave { onSaveSuccess() }
+                viewModel.onSave(
+                    onSuccess = { onSaveSuccess() },
+                    onMissingPermission = {
+                        // Aqui você pode exibir um dialog, toast, ou navegação para pedir permissão
+                        // Exemplo simples:
+                        // Toast.makeText(context, "Permissão de localização negada.", Toast.LENGTH_SHORT).show()
+                    }
+                )
             },
             enabled = uiState.title.isNotBlank() && uiState.location != null
         ) {
