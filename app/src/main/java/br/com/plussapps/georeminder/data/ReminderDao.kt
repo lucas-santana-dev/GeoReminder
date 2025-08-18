@@ -6,20 +6,28 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface ReminderDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insert(reminder: Reminder): Long
+    suspend fun insert(reminder: ReminderEntity): Long
 
     @Update
-    suspend fun update(reminder: Reminder)
+    suspend fun update(reminder: ReminderEntity)
 
     @Delete
-    suspend fun delete(reminder: Reminder)
+    suspend fun delete(reminder: ReminderEntity)
 
     @Query("SELECT * FROM reminders WHERE id = :id")
-    suspend fun getById(id: Long): Reminder?
+    suspend fun getById(id: Long): ReminderEntity?
 
+    // Snapshot (combina com a interface do domínio)
     @Query("SELECT * FROM reminders")
-    fun getAll(): Flow<List<Reminder>>
+    suspend fun getAllOnce(): List<ReminderEntity>
 
-    @Query("SELECT * FROM reminders WHERE isCompleted = 0")
-    fun getActive(): Flow<List<Reminder>>
+    @Query("SELECT * FROM reminders WHERE isActive = 1")
+    suspend fun getActiveOnce(): List<ReminderEntity>
+
+    // Observáveis (úteis para telas reativas, se precisar)
+    @Query("SELECT * FROM reminders")
+    fun observeAll(): Flow<List<ReminderEntity>>
+
+    @Query("SELECT * FROM reminders WHERE isActive = 1")
+    fun observeActive(): Flow<List<ReminderEntity>>
 }

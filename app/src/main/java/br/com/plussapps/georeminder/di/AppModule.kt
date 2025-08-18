@@ -1,7 +1,5 @@
 package br.com.plussapps.georeminder.di
 
-
-import android.app.Application
 import androidx.room.Room
 import br.com.plussapps.georeminder.data.ReminderDatabase
 import br.com.plussapps.georeminder.data.ReminderRepositoryImpl
@@ -16,14 +14,17 @@ val appModule = module {
             androidApplication(),
             ReminderDatabase::class.java,
             "reminder_db"
-        ).build()
+        )
+            //.addMigrations(ReminderDatabase.MIGRATION_1_2)
+            .fallbackToDestructiveMigration(false)
+            .build()
     }
 
     // DAO singleton
     single { get<ReminderDatabase>().reminderDao() }
 
     // Repository singleton
-    //single<ReminderRepository> { ReminderRepositoryImpl(get()) }
+    single<ReminderRepository> { ReminderRepositoryImpl(get()) }
 
     // Aqui você pode adicionar seus UseCases depois
 }

@@ -9,6 +9,7 @@ import java.time.LocalDateTime
 class GetRemindersForDateUseCase(private val repository: ReminderRepository) {
     @RequiresApi(Build.VERSION_CODES.O)
     suspend operator fun invoke(date: LocalDateTime): List<Reminder> {
-        return repository.getReminders().filter { it.dateTime.toLocalDate() == date.toLocalDate() }
+        val targetDate = date.toLocalDate()
+        return repository.getReminders().filter { it.dateTime?.toLocalDate() == targetDate }
     }
 }
