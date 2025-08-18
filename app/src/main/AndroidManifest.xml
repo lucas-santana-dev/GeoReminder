@@ -3,13 +3,10 @@
     xmlns:tools="http://schemas.android.com/tools">
 
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
-    <!-- Permissão para localização aproximada, usada quando não há necessidade de alta precisão -->
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-
-    <!-- Permissão para localização em segundo plano, exigida para geofencing funcional quando o app está fechado -->
     <uses-permission android:name="android.permission.ACCESS_BACKGROUND_LOCATION" />
     <application
+        android:name=".GeoReminderApp"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"

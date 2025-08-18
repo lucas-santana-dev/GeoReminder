@@ -26,5 +26,9 @@ val appModule = module {
     // Repository singleton
     single<ReminderRepository> { ReminderRepositoryImpl(get()) }
 
-    // Aqui você pode adicionar seus UseCases depois
+    // Exemplo de repository se existir:
+    // single<ReminderRepository> { ReminderRepositoryImpl(get()) }
+
+    // Exemplo de ViewModel quando você criar:
+    // viewModel { ReminderListViewModel(get()) }
 }
