@@ -1,9 +1,12 @@
 package br.com.plussapps.georeminder
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -13,7 +16,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Scaffold
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -25,7 +30,10 @@ class MainActivity : ComponentActivity() {
     companion object {
         const val PERMISSION_REQUEST_CODE = 123
         const val PERMISSION_BG_REQUEST_CODE = 124
+        const val PERMISSION_NOTIFICATION_REQUEST_CODE = 125
+        const val PERMISSION_OVERLAY_REQUEST_CODE = 126
     }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -48,13 +56,23 @@ class MainActivity : ComponentActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             val notificationPermission = Manifest.permission.POST_NOTIFICATIONS
             if (ContextCompat.checkSelfPermission(this, notificationPermission) != PackageManager.PERMISSION_GRANTED) {
-                ActivityCompat.requestPermissions(this, arrayOf(notificationPermission), 125)
+                ActivityCompat.requestPermissions(this, arrayOf(notificationPermission), PERMISSION_NOTIFICATION_REQUEST_CODE)
             }
+        }
+
+        // Permissão de sobreposição (overlay) - Opcional, só se for usar overlay!
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !Settings.canDrawOverlays(this)) {
+            val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, Uri.parse("package:$packageName"))
+            startActivityForResult(intent, PERMISSION_OVERLAY_REQUEST_CODE)
         }
 
         setContent {
             GeoReminderTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+                val snackbarHostState = remember { SnackbarHostState() }
+                Scaffold(
+                    modifier = Modifier.fillMaxSize(),
+                    snackbarHost = { SnackbarHost(snackbarHostState) }
+                ) { innerPadding ->
                     val scrollState = rememberScrollState()
                     Column(
                         modifier = Modifier
@@ -70,19 +88,30 @@ class MainActivity : ComponentActivity() {
         }
     }
 
-    // Opcional: lidando com o resultado da permissão
-//    override fun onRequestPermissionsResult(
-//        requestCode: Int,
-//        permissions: Array<out String>,
-//        grantResults: IntArray
-//    ) {
-//        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-//        if (requestCode == PERMISSION_REQUEST_CODE || requestCode == PERMISSION_BG_REQUEST_CODE) {
-//            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-//                // Permissão concedida!
-//            } else {
-//                // Permissão negada, avise o usuário ou ajuste o app
-//            }
-//        }
-//    }
+    // Exemplo de tratamento do resultado das permissões
+    @Deprecated("This method has been deprecated in favor of using the Activity Result API\n      which brings increased type safety via an {@link ActivityResultContract} and the prebuilt\n      contracts for common intents available in\n      {@link androidx.activity.result.contract.ActivityResultContracts}, provides hooks for\n      testing, and allow receiving results in separate, testable classes independent from your\n      activity. Use\n      {@link #registerForActivityResult(ActivityResultContract, ActivityResultCallback)} passing\n      in a {@link RequestMultiplePermissions} object for the {@link ActivityResultContract} and\n      handling the result in the {@link ActivityResultCallback#onActivityResult(Object) callback}.")
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<String>,
+        grantResults: IntArray
+    ) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (grantResults.isEmpty() || grantResults[0] != PackageManager.PERMISSION_GRANTED) {
+            when (requestCode) {
+                PERMISSION_REQUEST_CODE -> {
+                    // Permissão de localização negada, avise o usuário!
+                }
+                PERMISSION_BG_REQUEST_CODE -> {
+                    // Permissão de localização em background negada
+                }
+                PERMISSION_NOTIFICATION_REQUEST_CODE -> {
+                    // Permissão de notificação negada
+                }
+                PERMISSION_OVERLAY_REQUEST_CODE -> {
+                    // Permissão de sobreposição negada
+                }
+            }
+        }
+        // Se quiser, pode exibir um Snackbar para avisar o usuário
+    }
 }
